@@ -1,0 +1,6 @@
+@uami_csv_practice_HostAddress = http://localhost:5199
+
+GET {{uami_csv_practice_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
