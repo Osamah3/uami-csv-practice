@@ -1,6 +1,8 @@
 using CsvUploadApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Identity.Web;
+using Microsoft.IdentityModel.Tokens;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,11 +15,43 @@ builder.Services.AddSingleton<BlobStorageService>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApi(
-        builder.Configuration.GetSection("AzureAd"));
+    .AddJwtBearer(options =>
+    {
+        options.Authority =
+            "https://login.microsoftonline.com/f292caef-effe-4989-8d19-5ac4311f2c82";
 
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateAudience = true,
+            ValidAudiences = new[]
+            {
+                "292b52ce-31d3-4b52-88a7-e770ae0fd670",
+                "api://292b52ce-31d3-4b52-88a7-e770ae0fd670"
+            },
 
-builder.Services.AddAuthorization();
+            ValidateIssuer = true,
+            ValidIssuers = new[]
+            {
+                "https://login.microsoftonline.com/f292caef-effe-4989-8d19-5ac4311f2c82/v2.0",
+                "https://sts.windows.net/f292caef-effe-4989-8d19-5ac4311f2c82/"
+            }
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine("AUTH FAILED:");
+                Console.WriteLine(context.Exception);
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                Console.WriteLine("TOKEN VALIDATED");
+                return Task.CompletedTask;
+            }
+        };
+    });
 
 var app = builder.Build();
 

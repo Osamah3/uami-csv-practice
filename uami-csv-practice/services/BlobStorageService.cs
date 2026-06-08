@@ -1,4 +1,5 @@
-﻿using Azure.Storage.Blobs;
+﻿using Azure.Identity;
+using Azure.Storage.Blobs;
 
 namespace CsvUploadApi.Services;
 
@@ -8,10 +9,20 @@ public class BlobStorageService
 
     public BlobStorageService(IConfiguration configuration)
     {
-        var connectionString = configuration["AzureStorage:ConnectionString"];
+        var blobServiceUri = configuration["AzureStorage:BlobServiceUri"];
         var containerName = configuration["AzureStorage:ContainerName"];
 
-        var blobServiceClient = new BlobServiceClient(connectionString);
+        if (string.IsNullOrEmpty(blobServiceUri))
+            throw new InvalidOperationException("AzureStorage:BlobServiceUri is missing.");
+
+        if (string.IsNullOrEmpty(containerName))
+            throw new InvalidOperationException("AzureStorage:ContainerName is missing.");
+
+        var credential = new DefaultAzureCredential();
+
+        var blobServiceClient = new BlobServiceClient(
+            new Uri(blobServiceUri),
+            credential);
 
         _containerClient = blobServiceClient.GetBlobContainerClient(containerName);
     }
