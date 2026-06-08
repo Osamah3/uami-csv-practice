@@ -18,7 +18,12 @@ public class BlobStorageService
         if (string.IsNullOrEmpty(containerName))
             throw new InvalidOperationException("AzureStorage:ContainerName is missing.");
 
-        var credential = new DefaultAzureCredential();
+        var credential = new DefaultAzureCredential(
+            new DefaultAzureCredentialOptions
+            {
+                ManagedIdentityClientId =
+                    configuration["AzureStorage:ManagedIdentityClientId"]
+            });
 
         var blobServiceClient = new BlobServiceClient(
             new Uri(blobServiceUri),
